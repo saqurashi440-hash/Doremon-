@@ -1,0 +1,33 @@
+import discord, os
+from google import genai
+
+TOKEN = os.getenv("DISCORD_TOKEN")
+GEMINI = os.getenv("GEMINI_API_KEY")
+
+genai_client = genai.Client(api_key=GEMINI)
+
+intents = discord.Intents.default()
+intents.message_content = True
+bot = discord.Client(intents=intents)
+
+@bot.event
+async def on_ready():
+    print("Doremon 24/7 ONLINE")
+
+@bot.event
+async def on_message(m):
+    if m.author == bot.user:
+        return
+    if bot.user in m.mentions:
+        txt = m.content.replace(f'<@{bot.user.id}>','').strip() or "hi"
+        try:
+            r = genai_client.models.generate_content(
+                model="gemini-2.0-flash",
+                contents=f"Tum Doremon ho, Nobita ka dost. Hamesha Roman Urdu me cute funny jawab do. User ne kaha: {txt}"
+            )
+            await m.channel.send(r.text)
+        except Exception as e:
+            print(e)
+            await m.channel.send("Areyy Nobita! Gadget hang ho gaya, 1 min baad try karo!")
+
+bot.run(TOKEN)
